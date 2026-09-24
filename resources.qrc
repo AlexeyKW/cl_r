@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/cl_r" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
