@@ -35,6 +35,7 @@ from .resources import *
 from .cl_r_dialog import cl_rDialog
 import os.path
 import glob
+from . import processor
 
 
 class cl_r:
@@ -201,21 +202,19 @@ class cl_r:
         # See if OK was pressed
         if result:
             Processing.initialize()
-            osmDir = self.dlg.osm_path.filePath()
-            admShp = self.dlg.adm_shp.filePath()
-            QgsMessageLog.logMessage(osmDir, 'MyPlugin')
-            QgsMessageLog.logMessage(admShp, 'MyPlugin')
-            layer = QgsVectorLayer(admShp, "nso", "ogr")
-            QgsProject.instance().addMapLayer(layer)
-            layer.selectByExpression("\"ref\"='RU-NVS'", QgsVectorLayer.SetSelection)
-            resultDir = self.dlg.result_path.filePath()
-            filterAttribute = self.dlg.attribute_name.text()
-            filterValue = self.dlg.attribute_value.text()
-            for shpFile in glob.glob(osmDir+"\\*.shp"):
-                clipPath = resultDir+"\\"+os.path.basename(shpFile)
-                QgsMessageLog.logMessage(shpFile, 'MyPlugin')
-                processing.run('qgis:clip',{"INPUT":shpFile, "OVERLAY":QgsProcessingFeatureSourceDefinition(layer.id(), selectedFeaturesOnly=True), "OUTPUT":clipPath})
-                QgsMessageLog.logMessage("Reprojecting:"+shpFile, 'MyPlugin')
-                processing.run('qgis:reprojectlayer',{"INPUT":clipPath, "TARGET_CRS": "EPSG:32644", "OUTPUT":resultDir+"\\"+os.path.splitext(os.path.basename(shpFile))[0]+"_proj.shp"})
 
-            pass
+            # Считываем параметры из диалога
+            osm_dir = self.dlg.osm_path.filePath()
+            adm_shp = self.dlg.adm_shp.filePath()
+            result_dir = self.dlg.result_path.filePath()
+            filter_attribute = self.dlg.attribute_name.text()
+            filter_value = self.dlg.attribute_value.text()
+
+            # Вся бизнес-логика вынесена в processor.py
+            processor.run_processing(
+                osm_dir=osm_dir,
+                adm_shp=adm_shp,
+                result_dir=result_dir,
+                filter_attribute=filter_attribute,
+                filter_value=filter_value,
+            )
